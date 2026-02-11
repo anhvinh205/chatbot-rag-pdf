@@ -27,12 +27,15 @@ def build_vector_db(pdf_path: str):
 def answer_question(llm, vector_db, question: str):
     retriever = vector_db.as_retriever(search_kwargs={"k": 2})
     docs = retriever.invoke(question)
-
+    if not docs:
+        return llm.invoke(question)
     context = "\n\n".join([d.page_content[:700] for d in docs])
 
     prompt = f"""
 You are a helpful assistant.
-Answer the question using ONLY the context below.
+Use the context below to answer the question.
+If the answer is not in the context, say "I don't know".
+
 
 Context:
 {context}
