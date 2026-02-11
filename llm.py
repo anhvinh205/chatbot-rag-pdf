@@ -5,6 +5,8 @@ def load_llm(
     model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     max_new_tokens=128
 ):
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="cpu"
@@ -17,6 +19,8 @@ def load_llm(
         model=model,
         tokenizer=tokenizer,
         max_new_tokens=max_new_tokens,
+        do_sample=False,
+        return_full_text=False
     )
 
     return HuggingFacePipeline(pipeline=pipe)

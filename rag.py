@@ -25,10 +25,10 @@ def build_vector_db(pdf_path: str):
     return vector_db
 
 def answer_question(llm, vector_db, question: str):
-    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
+    retriever = vector_db.as_retriever(search_kwargs={"k": 2})
     docs = retriever.invoke(question)
 
-    context = "\n\n".join([d.page_content for d in docs])
+    context = "\n\n".join([d.page_content[:700] for d in docs])
 
     prompt = f"""
 You are a helpful assistant.
@@ -43,4 +43,5 @@ Question:
 Answer:
 """
 
-    return llm.invoke(prompt)
+    response = llm.invoke(prompt)
+    return response.strip()
