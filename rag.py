@@ -4,8 +4,16 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
 def build_vector_db(pdf_path: str):
+     # Check files
+    import os
+    if not os.path.exists(pdf_path):
+        raise FileNotFoundError(f"Not found file PDF: {pdf_path}")
+
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
+
+    if not documents:
+        raise ValueError(f"File PDF is empty or cannot be read: {pdf_path}")
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,

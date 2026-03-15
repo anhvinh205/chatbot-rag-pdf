@@ -3,7 +3,7 @@ from langchain_huggingface import HuggingFacePipeline
 
 def load_llm(
     model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-    max_new_tokens=128
+    max_new_tokens=256
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
@@ -11,8 +11,6 @@ def load_llm(
         model_name,
         device_map="cpu"
     )
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     pipe = pipeline(
         "text-generation",
