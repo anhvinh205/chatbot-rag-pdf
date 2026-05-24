@@ -33,10 +33,48 @@ def build_vector_db(pdf_path: str):
     return vector_db
 
 def answer_question(llm, vector_db, question: str):
+    def _call_llm(llm_obj, prompt_text: str) -> str:
+        try:
+            res = llm_obj(prompt_text)
+        except Exception:
+            try:
+                # fallback for some pipeline wrappers
+                res = llm_obj.generate(prompt_text)
+            except Exception:
+                res = None
+
+        if isinstance(res, str):
+            return res
+        if res is None:
+            return ""
+
+        # LangChain LLMResult shape
+        try:
+            return res.generations[0][0].text
+        except Exception:
+            pass
+
+        # transformers pipeline -> list[dict]{'generated_text'}
+        try:
+            if isinstance(res, list) and len(res) and isinstance(res[0], dict):
+                return res[0].get("generated_text") or str(res[0])
+        except Exception:
+            pass
+
+        return str(res)
+
     retriever = vector_db.as_retriever(search_kwargs={"k": 2})
-    docs = retriever.invoke(question)
+    try:
+        docs = retriever.get_relevant_documents(question)
+    except Exception:
+        try:
+            docs = retriever.get_documents(question)
+        except Exception:
+            docs = []
+
     if not docs:
-        return llm.invoke(question)
+        return _call_llm(llm, question).strip()
+
     context = "\n\n".join([d.page_content[:700] for d in docs])
 
     prompt = f"""
@@ -54,5 +92,5 @@ Question:
 Answer:
 """
 
-    response = llm.invoke(prompt)
+    response = _call_llm(llm, prompt)
     return response.strip()
